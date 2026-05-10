@@ -1,0 +1,16 @@
+{
+    "manifest_version": 3,
+    "name": "TranslateYourReview",
+    "version": "1.0",
+    "description": "",
+    "content_scripts": [
+        {
+            "matches": ["*://rateyourmusic.com/release/*"],
+            "js": ["translate.js"]
+        },
+        {
+            "matches": ["*://rateyourmusic.com/account/preferences"],
+            "js": ["options.js"]
+        }
+    ]
+}
