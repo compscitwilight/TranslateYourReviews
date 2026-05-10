@@ -2,11 +2,12 @@
   "name": "translateyourreview",
   "version": "1.0.0",
   "description": "Web extension that provides translation for reviews on RateYourMusic",
-  "license": "ISC",
-  "author": "",
-  "type": "commonjs",
-  "main": "index.js",
+  "license": "MIT",
+  "author": "compscitwilight",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "esbuild src/**/*.ts --bundle --outdir=dist"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
   }
 }
