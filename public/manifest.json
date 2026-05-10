@@ -3,14 +3,32 @@
     "name": "TranslateYourReviews",
     "version": "1.0",
     "description": "",
+    "background": {
+        "scripts": [
+            "background.js"
+        ],
+        "type": "module"
+    },
     "content_scripts": [
         {
-            "matches": ["*://rateyourmusic.com/release/*"],
-            "js": ["translate.js"]
+            "matches": [
+                "*://rateyourmusic.com/release/*"
+            ],
+            "js": [
+                "precheck.js",
+                "translate.js"
+            ]
         },
         {
-            "matches": ["*://rateyourmusic.com/account/preferences"],
-            "js": ["options.js"]
+            "matches": [
+                "*://rateyourmusic.com/account/preferences"
+            ],
+            "js": [
+                "options.js"
+            ]
         }
+    ],
+    "host_permissions": [
+        "https://api-free.deepl.com/*"
     ]
 }
