@@ -5,7 +5,9 @@
   "license": "MIT",
   "author": "compscitwilight",
   "scripts": {
-    "build": "esbuild src/**/*.ts --bundle --outdir=dist"
+    "build:js": "esbuild src/**/*.ts --bundle --outdir=dist",
+    "build:assets": "cp -r public/* dist/",
+    "build": "npm run build:js && npm run build:assets"
   },
   "devDependencies": {
     "esbuild": "^0.28.0"
