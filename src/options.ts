@@ -4,12 +4,12 @@ async function injectConfigurationHTML() {
     const url = browser.runtime.getURL("configuration.html");
     const response = await fetch(url);
     const html = await response.text();
-    const preferencesPageContainer = document.querySelector<HTMLDivElement>("#signupcontainer");
-    if (!preferencesPageContainer) {
+    const pageForm = document.querySelector<HTMLDivElement>("#mediumForm");
+    if (!pageForm) {
         throw new Error("Failed to retrieve #signupcontainer");
     }
 
-    preferencesPageContainer.insertAdjacentHTML("afterbegin", html);
+    pageForm.insertAdjacentHTML("beforebegin", html);
 }
 
 injectConfigurationHTML().then(() => {
