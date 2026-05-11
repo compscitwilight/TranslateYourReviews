@@ -9,6 +9,12 @@
         ],
         "type": "module"
     },
+    "web_accessible_resources": [
+        {
+            "resources": ["configuration.html"],
+            "matches": ["*://rateyourmusic.com/account/preferences"]
+        }
+    ],
     "content_scripts": [
         {
             "matches": [

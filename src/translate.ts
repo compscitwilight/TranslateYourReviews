@@ -104,7 +104,7 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
     translateButton.appendChild(icon);
     reviewHeader?.appendChild(translateButton);
 
-    translateButton.addEventListener("mousedown", () => {
+    translateButton.addEventListener("click", () => {
         translateReview(renderedText?.innerHTML)
             .then((translation: DeepLTranslation) => {
                 displayReviewTranslation(translation);
