@@ -15,7 +15,6 @@
                 "*://rateyourmusic.com/release/*"
             ],
             "js": [
-                "precheck.js",
                 "translate.js"
             ]
         },
@@ -26,7 +25,18 @@
             "js": [
                 "options.js"
             ]
+        },
+        {
+            "matches": [
+                "*://rateyourmusic.com/account/account_edit"
+            ],
+            "js": [
+                "profileOptions.js"
+            ]
         }
+    ],
+    "permissions": [
+        "storage"
     ],
     "host_permissions": [
         "https://api-free.deepl.com/*"
