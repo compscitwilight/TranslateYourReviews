@@ -1,6 +1,29 @@
+import { franc } from "franc";
+import type { DeepLTranslation, CachedTranslation } from "./background";
+
 const apiKey = localStorage.getItem("_tyr_deepl_key");
 const targetLang = localStorage.getItem("_tyr_lang");
 const languageNames = new Intl.DisplayNames(["en"], { type: "language" });
+
+async function cacheTranslation(reviewId: string, translation: DeepLTranslation) {
+    const entry = {
+        t: translation.text,
+        lang: translation.detected_source_language,
+        ts: Date.now()
+    } as CachedTranslation;
+
+    browser.storage.local.set({
+        [reviewId]: entry
+    });
+
+    console.log(`cached translation for ${reviewId}`);
+}
+
+async function getCachedTranslation(reviewId: string): Promise<CachedTranslation | null> {
+    const data = await browser.storage.local.get(reviewId);
+    if (!data[reviewId]) return null;
+    return data[reviewId];
+}
 
 async function translateReview(reviewBodyHTML: string) {
     const res = await browser.runtime.sendMessage({
@@ -14,20 +37,59 @@ async function translateReview(reviewBodyHTML: string) {
     if (res.error) throw new Error(res.error);
 
     const translation = res["translations"][0];
-    const translatedText = translation["text"];
     return translation;
 }
 
 // adds a translate button for reviews 
-function injectStandardTranslateButton(review: HTMLDivElement) {
+async function injectStandardTranslateButton(review: HTMLDivElement) {
     const reviewHeader = review.querySelector<HTMLDivElement>(".review_header");
     const reviewBody = review.querySelector<HTMLDivElement>(".review_body");
+    const publishStatus = review.querySelector<HTMLDivElement>(".review_publish_status");
     if (!reviewBody) {
         console.warn("Failed to retrieve reviewBody");
         return;
     }
 
     const renderedText = reviewBody.querySelector<HTMLDivElement>(":scope > span > span.rendered_text");
+    if (!renderedText) {
+        console.warn("renderedText wasn't found for this review");
+        return;
+    }
+
+    const language = franc(renderedText?.innerText);
+    const reviewId = publishStatus?.querySelector("input")?.value as string;
+
+    function displayReviewTranslation(translation: DeepLTranslation) {
+        if (!renderedText) {
+            console.warn("renderedText could not be retrieved");
+            return;
+        }
+
+        const originalReview = document.createElement("div");
+        const sourceLanguage = languageNames.of(translation.detected_source_language.toLowerCase());
+        originalReview.innerHTML = `Original review (Translated from ${sourceLanguage}):<br />${renderedText.innerHTML}`;
+        originalReview.style.marginTop = "4px";
+        originalReview.style.backgroundColor = "var(--btn-expand-background-default)";
+        originalReview.style.padding = "2px";
+        originalReview.style.margin = "2px";
+        originalReview.style.borderRadius = "6px";
+        originalReview.classList.add("small");
+        reviewBody?.insertBefore(originalReview, publishStatus);
+
+        renderedText.innerHTML = translation.text;
+        translateButton.remove();
+    }
+
+    const cachedTranslation = await getCachedTranslation(reviewId);
+    if (cachedTranslation) {
+        displayReviewTranslation({
+            text: cachedTranslation.t,
+            detected_source_language: cachedTranslation.lang
+        });
+    }
+
+    if (language.slice(0, 2) === targetLang?.toLowerCase()) return;
+
     const translateButton = document.createElement("span");
     translateButton.style.float = "right";
     translateButton.style.marginRight = "4px";
@@ -42,28 +104,10 @@ function injectStandardTranslateButton(review: HTMLDivElement) {
     reviewHeader?.appendChild(translateButton);
 
     translateButton.addEventListener("mousedown", () => {
-        if (!renderedText) {
-            console.warn("renderedText wasn't found for this review");
-            return;
-        }
-
-        // console.log(renderedText.innerHTML);
-
-        translateReview(renderedText.innerHTML)
-            .then((translation: { text: string, detected_source_language: string }) => {
-                const originalReview = document.createElement("div");
-                const sourceLanguage = languageNames.of(translation.detected_source_language.toLowerCase());
-                originalReview.innerHTML = `Original review (Translated from ${sourceLanguage}):<br />${renderedText.innerHTML}`;
-                originalReview.style.marginTop = "4px";
-                originalReview.style.backgroundColor = "var(--btn-expand-background-default)";
-                originalReview.style.padding = "2px";
-                originalReview.style.margin = "2px";
-                originalReview.style.borderRadius = "6px";
-                originalReview.classList.add("small");
-                reviewBody.insertBefore(originalReview, reviewBody.querySelector(".review_publish_status"));
-
-                renderedText.innerHTML = translation.text;
-                translateButton.remove();
+        translateReview(renderedText?.innerHTML)
+            .then((translation: DeepLTranslation) => {
+                displayReviewTranslation(translation);
+                cacheTranslation(reviewId, translation);
             })
             .catch((err: string) => alert(`Failed to translate review! ${err}`))
     })
