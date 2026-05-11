@@ -116,7 +116,7 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
 
 // adds a translate button for reviews on the front page or displayed via the [Reviewxxxxx] shortcut
 function injectShortcutTranslateButton(review: HTMLDivElement) {
-
+    // todo: add functionality
 }
 
 if (apiKey && targetLang) {
