@@ -7,6 +7,7 @@
         "scripts": [
             "background.js"
         ],
+        "service_worker": "background.js",
         "type": "module"
     },
     "icons": {
@@ -19,7 +20,7 @@
                 "configuration.html"
             ],
             "matches": [
-                "*://rateyourmusic.com/account/preferences"
+                "*://rateyourmusic.com/*"
             ]
         }
     ],
@@ -34,7 +35,7 @@
         },
         {
             "matches": [
-                "*://rateyourmusic.com/account/preferences"
+                "*://rateyourmusic.com/account/preferences*"
             ],
             "js": [
                 "options.js"
@@ -42,7 +43,7 @@
         },
         {
             "matches": [
-                "*://rateyourmusic.com/account/account_edit"
+                "*://rateyourmusic.com/account/account_edit*"
             ],
             "js": [
                 "profileOptions.js"
