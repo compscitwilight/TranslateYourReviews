@@ -1,4 +1,5 @@
 import { franc } from "franc";
+import striptags from "striptags";
 import type { DeepLTranslation, CachedTranslation } from "./background";
 
 const apiKey = localStorage.getItem("_tyr_deepl_key");
@@ -51,13 +52,16 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
         return;
     }
 
+    const reviewTitle = reviewBody.querySelector<HTMLDivElement>(":scope > div.review_title");
+
     const renderedText = reviewBody.querySelector<HTMLDivElement>(":scope > span > span.rendered_text");
     if (!renderedText) {
         console.warn("renderedText wasn't found for this review");
         return;
     }
 
-    const language = franc(renderedText?.innerText);
+    const reviewContent = (reviewTitle?.innerHTML || "").concat(renderedText?.innerHTML);
+    const language = franc(striptags(reviewContent));
     const reviewId = publishStatus?.querySelector("input")?.value as string;
 
     function displayReviewTranslation(translation: DeepLTranslation) {
@@ -68,7 +72,7 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
 
         const originalReview = document.createElement("div");
         const sourceLanguage = languageNames.of(translation.detected_source_language.toLowerCase());
-        originalReview.innerHTML = `Original review (Translated from ${sourceLanguage}):<br />${renderedText.innerHTML}`;
+        originalReview.innerHTML = `Original review (Translated from ${sourceLanguage}):<br />${reviewContent}`;
         originalReview.style.marginTop = "4px";
         originalReview.style.backgroundColor = "var(--btn-expand-background-default)";
         originalReview.style.padding = "2px";
@@ -76,6 +80,14 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
         originalReview.style.borderRadius = "6px";
         originalReview.classList.add("small");
         reviewBody?.insertBefore(originalReview, publishStatus);
+
+        if (reviewTitle) {
+            const lines = translation.text.split("<br>");
+            if (lines.length > 1) {
+                reviewTitle.textContent = translation.text.split("<br>")[0];
+                translation.text = lines.slice(1).join("");
+            }
+        }
 
         renderedText.innerHTML = translation.text;
         translateButton.remove();
@@ -104,13 +116,22 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
     translateButton.appendChild(icon);
     reviewHeader?.appendChild(translateButton);
 
+    let waiting: boolean = false;
     translateButton.addEventListener("click", () => {
-        translateReview(renderedText?.innerHTML)
+        if (waiting) return;
+
+        waiting = true;
+        translateButton.style.cursor = "not-authorized";
+        translateReview(reviewContent)
             .then((translation: DeepLTranslation) => {
                 displayReviewTranslation(translation);
                 cacheTranslation(reviewId, translation);
             })
             .catch((err: string) => alert(`Failed to translate review! ${err}`))
+            .finally(() => {
+                waiting = false;
+                translateButton.style.cursor = "auto";
+            })
     })
 }
 
