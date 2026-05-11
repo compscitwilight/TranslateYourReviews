@@ -12,6 +12,12 @@ TranslateYourReviews is a browser extension that brings DeepL integration to rev
 * Privacy-first (communicates with DeepL directly from your browser)
 * Site language detection
 
+<p align="center" content="center">
+  <img style="vertical-align: middle;" src="./.github/sample-review.png" width="45%" />
+  <img style="vertical-align: middle;" src="./.github/config.png" width="45%" />
+</p>
+
+
 ## Installation
 ### Local
 Clone the repo
