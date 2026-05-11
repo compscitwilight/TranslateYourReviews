@@ -19,7 +19,7 @@ injectConfigurationHTML().then(() => {
         throw new Error("Failed to locate API key field input");
     }
 
-    apiKeyInput.defaultValue = localStorage.getItem("_tyr_deepl_key") || "EN";
+    apiKeyInput.defaultValue = localStorage.getItem("_tyr_deepl_key") || "";
 
     // detected language indicator //
     const detectedLanguageP = document.querySelector<HTMLParagraphElement>("#detected-language");
