@@ -12,7 +12,7 @@ export interface CachedTranslation {
 interface TranslateRequest {
     action: "translate";
     text: string;
-    targetLang: string;
+    targetLang?: string;
     apiKey: string;
 }
 
@@ -27,7 +27,7 @@ browser.runtime.onMessage.addListener(async (message: TranslateRequest) => {
                 },
                 body: JSON.stringify({
                     text: [message.text],
-                    target_lang: message.targetLang,
+                    target_lang: message.targetLang || "EN",
                     tag_handling: "html"
                 })
             })
