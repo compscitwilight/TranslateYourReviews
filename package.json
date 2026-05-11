@@ -11,5 +11,8 @@
   },
   "devDependencies": {
     "esbuild": "^0.28.0"
+  },
+  "dependencies": {
+    "franc": "^6.2.0"
   }
 }
