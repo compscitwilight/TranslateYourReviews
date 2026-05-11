@@ -14,8 +14,10 @@ TranslateYourReviews is a browser extension that brings DeepL integration to rev
 
 
 ## Screenshots
-<img src="./.github/sample-review.png"  />
-<img src="./.github/config.png" />
+<div align="center">
+<img width="50%" src="./.github/sample-review.png"  />
+<img width="50%" src="./.github/config.png" />
+</div>
 
 
 ## Installation
