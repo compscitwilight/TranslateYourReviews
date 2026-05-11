@@ -1,3 +1,5 @@
+import { DeepLTranslation } from "./background";
+
 const preferencesPageContainer = document.querySelector<HTMLDivElement>("#signupcontainer");
 if (!preferencesPageContainer) {
     throw new Error("Failed to retrieve #signupcontainer");
@@ -16,14 +18,14 @@ const tyrPreferencesContent = document.createElement("fieldset");
 tyrPreferencesContainer.appendChild(tyrPreferencesContent);
 
 const tyrPreferencesHeading = document.createElement("h4");
-tyrPreferencesHeading.textContent = "Configure TranslateYourReview"
+tyrPreferencesHeading.textContent = "Configure TranslateYourReviews"
 tyrPreferencesContent.appendChild(tyrPreferencesHeading);
 
 // api key subsection //
 const apiKeyInfo = document.createElement("div");
 apiKeyInfo.classList.add("clear");
 const infoPt1 = document.createElement("p");
-infoPt1.innerText = "Before using TranslateYourReview, it is necessary to provide your own DeepL API key. You can get one for free by signing up ";
+infoPt1.innerText = "Before using TranslateYourReviews, it is necessary to provide your own DeepL API key. You can get one for free by signing up ";
 apiKeyInfo.appendChild(infoPt1);
 
 const deepLHyperlink = document.createElement("a");
@@ -61,11 +63,26 @@ doneButton.addEventListener("mousedown", () => {
         return;
     }
 
-    localStorage.setItem("_tyr_deepl_key", apiKeyVal);
-    alert("Your API key was updated successfully.");
+    // dry run + language detection //
+    const sampleText = document.querySelector<HTMLAnchorElement>("#profile_tab ul li a")?.innerText;
+    browser.runtime.sendMessage({
+        action: "translate",
+        text: sampleText,
+        targetLang: "EN",
+        apiKey: apiKeyVal
+    }).then((res: any) => {
+        if (res.error) throw new Error(res.error);
+        const translation = res["translations"][0] as DeepLTranslation;
+        const detectedLanguage = translation.detected_source_language;
+        console.log(`detected ${detectedLanguage}`);
+        localStorage.setItem("_tyr_lang", detectedLanguage);
+        localStorage.setItem("_tyr_deepl_key", apiKeyVal);
+        alert("Your API key was updated successfully.");
+    }).catch((err: string) => {
+        alert(`Failed to validate DeepL API key:\n\n${err}`);
+    })
 })
 
 for (let i = 0; i < 3; i++) tyrPreferencesContent.appendChild(document.createElement("br"));
 tyrPreferencesContent.appendChild(doneButton);
-
 preferencesPageContainer.insertBefore(tyrPreferencesContainer, mainPreferencesForm);
