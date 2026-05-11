@@ -13,16 +13,17 @@ async function cacheTranslation(reviewId: string, translation: DeepLTranslation)
     } as CachedTranslation;
 
     browser.storage.local.set({
-        [reviewId]: entry
+        [`${reviewId}_${targetLang}`]: entry
     });
 
     console.log(`cached translation for ${reviewId}`);
 }
 
 async function getCachedTranslation(reviewId: string): Promise<CachedTranslation | null> {
-    const data = await browser.storage.local.get(reviewId);
-    if (!data[reviewId]) return null;
-    return data[reviewId];
+    const key = `${reviewId}_${targetLang}`;
+    const data = await browser.storage.local.get(key);
+    if (!data[key]) return null;
+    return data[key];
 }
 
 async function translateReview(reviewBodyHTML: string) {
