@@ -42,6 +42,24 @@ async function translateReview(reviewBodyHTML: string) {
     return translation;
 }
 
+function escapeXML(unsafeXml: string) {
+    return unsafeXml.replace(/[<>&"']/g, (c) => {
+        switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '"': return '&quot;';
+            case "'": return '&apos;';
+            default: return c;
+        }
+    })
+}
+
+function unescapeXML(safeXml: string) {
+    const doc = new DOMParser().parseFromString(safeXml, "text/html");
+    return doc.documentElement.textContent || "";
+}
+
 // adds a translate button for reviews 
 async function injectStandardTranslateButton(review: HTMLDivElement) {
     const reviewHeader = review.querySelector<HTMLDivElement>(".review_header");
@@ -60,7 +78,7 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
         return;
     }
 
-    const reviewContent = (reviewTitle?.innerHTML || "").concat(renderedText?.innerHTML);
+    const reviewContent = `<title>${escapeXML(reviewTitle?.innerHTML || "")}</title><body>${escapeXML(renderedText?.innerHTML || "")}</body>`;
     const language = franc(striptags(reviewContent));
     const reviewId = publishStatus?.querySelector("input")?.value as string;
 
@@ -70,9 +88,20 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
             return;
         }
 
+        const titleMatch = translation.text.match(/<title>(.*?)<\/title>/s);
+        const bodyMatch = translation.text.match(/<body>(.*?)<\/body>/s);
+        let translatedTitle = titleMatch ? titleMatch[1].trim() : "";
+        let translatedBody = bodyMatch ? bodyMatch[1].trim() : translation.text;
+
+        if (reviewTitle && translatedTitle) {
+            reviewTitle.innerHTML = unescapeXML(translatedTitle);
+        }
+
+        renderedText.innerHTML = unescapeXML(translatedBody);
+
         const originalReview = document.createElement("div");
         const sourceLanguage = languageNames.of(translation.detected_source_language.toLowerCase());
-        originalReview.innerHTML = `Original review (Translated from ${sourceLanguage}):<br />${reviewContent}`;
+        originalReview.innerHTML = `Original review (Translated from ${sourceLanguage}):<br />${unescapeXML(reviewContent)}`;
         originalReview.style.marginTop = "4px";
         originalReview.style.backgroundColor = "var(--btn-expand-background-default)";
         originalReview.style.padding = "2px";
@@ -80,16 +109,6 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
         originalReview.style.borderRadius = "6px";
         originalReview.classList.add("small");
         reviewBody?.insertBefore(originalReview, publishStatus);
-
-        if (reviewTitle) {
-            const lines = translation.text.split("<br>");
-            if (lines.length > 1) {
-                reviewTitle.textContent = translation.text.split("<br>")[0];
-                translation.text = lines.slice(1).join("");
-            }
-        }
-
-        renderedText.innerHTML = translation.text;
         translateButton.remove();
     }
 

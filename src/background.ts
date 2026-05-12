@@ -28,7 +28,8 @@ browser.runtime.onMessage.addListener(async (message: TranslateRequest) => {
                 body: JSON.stringify({
                     text: [message.text],
                     target_lang: message.targetLang || "EN",
-                    tag_handling: "html"
+                    tag_handling: "xml",
+                    // ignore_tags: ["br", "i", "b", "em", "strong"]
                 })
             })
 
