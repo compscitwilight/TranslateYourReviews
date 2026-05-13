@@ -1,11 +1,13 @@
+interface ErrorProneResponse { error?: string; };
+
 // https://developers.deepl.com/api-reference/translate/request-translation
-export interface DeepLTranslation {
+export interface DeepLTranslation extends ErrorProneResponse {
     text: string;
     detected_source_language: string;
 }
 
 // https://developers.deepl.com/api-reference/usage-and-quota/check-usage-and-limits
-export interface DeepLUsage {
+export interface DeepLUsage extends ErrorProneResponse {
     products: Array<{
         product_type: string;
         api_key_character_count: number;
@@ -34,12 +36,13 @@ interface Request {
 
 browser.runtime.onMessage.addListener(async (message: Request) => {
     try {
+        const authKey = `DeepL-Auth-Key ${message.apiKey}`;
         if (message.action === "translate") {
             const res = await fetch("https://api-free.deepl.com/v2/translate", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `DeepL-Auth-Key ${message.apiKey}`
+                    "Authorization": authKey
                 },
                 body: JSON.stringify({
                     text: [message.text],
@@ -53,8 +56,9 @@ browser.runtime.onMessage.addListener(async (message: Request) => {
 
             return await res.json();
         } else if (message.action === "getUsage") {
-            const res = await fetch("https://api-free.depl.com/v2/usage", {
-                headers: { "Authorization": `DeepL-Auth-Key ${message.apiKey}` }
+            const res = await fetch("https://api-free.deepl.com/v2/usage", {
+                method: "GET",
+                headers: { "Authorization": authKey }
             });
 
             if (!res.ok) return { error: `${(await res.json()).message}, status code ${res.status}` };
