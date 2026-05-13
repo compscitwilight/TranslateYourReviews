@@ -13,27 +13,30 @@ async function injectConfigurationHTML() {
 }
 
 injectConfigurationHTML().then(() => {
-    // api usage //
-    const apiUsageLabel = document.querySelector<HTMLLabelElement>("#api-usage-label");
-    const apiUsageProgress = document.querySelector<HTMLProgressElement>("#progressBar");
-    browser.runtime.sendMessage({
-        action: "getUsage",
-        apiKey: localStorage.getItem("_tyr_deepl_key")
-    }).then((res: DeepLUsage) => {
-        if (res.error) throw new Error(res.error);
-        if (!apiUsageProgress || !apiUsageLabel) return;
-
-        const characterCount = res.character_count;
-        const characterLimit = res.character_limit;
-        const usagePercent = (characterCount / characterLimit) * 100;
-        apiUsageProgress.value = usagePercent;
-        apiUsageLabel.innerText = `API usage: (${characterCount} / ${characterLimit}) ${usagePercent.toFixed(2)}%`;
-    }).catch((error: string) => alert(`Failed to retrieve API usage:\n\n${error}`));
-
     // api key field / /
     const apiKeyInput = document.querySelector<HTMLInputElement>("#api-key");
     if (!apiKeyInput) {
         throw new Error("Failed to locate API key field input");
+    }
+
+    const currentAPIKey = localStorage.getItem("_tyr_deepl_key") || "";
+    // api usage //
+    if (currentAPIKey.length > 0) {
+        const apiUsageLabel = document.querySelector<HTMLLabelElement>("#api-usage-label");
+        const apiUsageProgress = document.querySelector<HTMLProgressElement>("#progressBar");
+        browser.runtime.sendMessage({
+            action: "getUsage",
+            apiKey: localStorage.getItem("_tyr_deepl_key")
+        }).then((res: DeepLUsage) => {
+            if (res.error) throw new Error(res.error);
+            if (!apiUsageProgress || !apiUsageLabel) return;
+
+            const characterCount = res.character_count;
+            const characterLimit = res.character_limit;
+            const usagePercent = (characterCount / characterLimit) * 100;
+            apiUsageProgress.value = usagePercent;
+            apiUsageLabel.innerText = `API usage: (${characterCount} / ${characterLimit}) ${usagePercent.toFixed(2)}%`;
+        }).catch((error: string) => alert(`Failed to retrieve API usage:\n\n${error}`));
     }
 
     apiKeyInput.defaultValue = localStorage.getItem("_tyr_deepl_key") || "";
