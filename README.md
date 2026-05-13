@@ -1,9 +1,12 @@
 <div align="center">
     <img width="25%" src="./public/icons/128.png" />
     <h1>TranslateYourReviews</h1>
+    <p>TranslateYourReviews is a browser extension that brings DeepL integration to reviews on RYM.</p>
+    <a href="https://chromewebstore.google.com/detail/TranslateYourReviews/afidebkjbnljodfoleehhhendihaijlj">
+        <img src="./.github/chrome-webstore.png" />
+    </a>
 </div>
 
-TranslateYourReviews is a browser extension that brings DeepL integration to reviews on RYM.
 
 ## Features
 * Release page UI integration
