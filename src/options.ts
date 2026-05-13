@@ -1,4 +1,4 @@
-import { DeepLTranslation } from "./background";
+import { DeepLTranslation, DeepLUsage } from "./background";
 
 async function injectConfigurationHTML() {
     const url = browser.runtime.getURL("configuration.html");
@@ -13,6 +13,23 @@ async function injectConfigurationHTML() {
 }
 
 injectConfigurationHTML().then(() => {
+    // api usage //
+    const apiUsageLabel = document.querySelector<HTMLLabelElement>("#api-usage-label");
+    const apiUsageProgress = document.querySelector<HTMLProgressElement>("#progressBar");
+    browser.runtime.sendMessage({
+        action: "getUsage",
+        apiKey: localStorage.getItem("_tyr_deepl_key")
+    }).then((res: DeepLUsage) => {
+        if (res.error) throw new Error(res.error);
+        if (!apiUsageProgress || !apiUsageLabel) return;
+
+        const characterCount = res.character_count;
+        const characterLimit = res.character_limit;
+        const usagePercent = (characterCount / characterLimit) * 100;
+        apiUsageProgress.value = usagePercent;
+        apiUsageLabel.innerText = `API usage: (${characterCount} / ${characterLimit}) ${usagePercent.toFixed(2)}%`;
+    }).catch((error: string) => alert(`Failed to retrieve API usage:\n\n${error}`));
+
     // api key field / /
     const apiKeyInput = document.querySelector<HTMLInputElement>("#api-key");
     if (!apiKeyInput) {
@@ -20,17 +37,6 @@ injectConfigurationHTML().then(() => {
     }
 
     apiKeyInput.defaultValue = localStorage.getItem("_tyr_deepl_key") || "";
-
-    // detected language indicator //
-    const detectedLanguageP = document.querySelector<HTMLParagraphElement>("#detected-language");
-    if (detectedLanguageP) {
-        detectedLanguageP.innerText = localStorage.getItem("_tyr_lang") || "EN";
-    }
-
-    const savePreferencesButton = document.querySelector<HTMLButtonElement>("#mediumForm #go");
-    if (!savePreferencesButton) {
-        throw new Error("Failed to find default save preferences button.");
-    }
 
     const doneButton = document.querySelector<HTMLInputElement>("#tyr-configuration-done");
     // doneButton.id = "go";
