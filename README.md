@@ -5,6 +5,9 @@
     <a href="https://chromewebstore.google.com/detail/TranslateYourReviews/afidebkjbnljodfoleehhhendihaijlj">
         <img src="./.github/chrome-webstore.png" />
     </a>
+    <a href="https://addons.mozilla.org/en-US/firefox/addon/translateyourreviews/">
+        <img src="./.github/firefox-addon.webp" />
+    </a>
 </div>
 
 
