@@ -8,7 +8,8 @@
     "build:js": "esbuild src/**/*.ts --bundle --outdir=dist",
     "build:assets": "cp -r public/* dist/",
     "build": "npm run build:js && npm run build:assets",
-    "package": "rm tyr.zip && zip -r ./tyr.zip ./dist/*"
+    "package": "rm -f tyr.zip && cd dist && zip -r ../tyr.zip ./* && cd ..",
+    "package:source": "rm -f source.zip && zip -r ./source.zip src/* package.json public/*"
   },
   "devDependencies": {
     "esbuild": "^0.28.0"
