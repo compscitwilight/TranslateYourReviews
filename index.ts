@@ -1,10 +1,12 @@
 import express from "express";
 import "dotenv/config";
+import { registerTrial } from "./redis.js";
 
 const server = express();
 
-server.post("/register", async (request: express.Request, response: express.Response) {
-    
+server.post("/register", async (request: express.Request, response: express.Response) => {
+    const trialId = registerTrial();
+    return response.status(200).send({ trialId });
 })
 
 server.post("/translate", async (request: express.Request, response: express.Response) => {
