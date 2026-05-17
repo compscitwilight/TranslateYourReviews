@@ -1,0 +1,20 @@
+{
+  "name": "translateyourreviews-proxy",
+  "version": "1.0.0",
+  "description": "Pre-configured DeepL proxy for TranslateYourReviews",
+  "license": "MIT",
+  "author": "compscitwilight",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./build"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
