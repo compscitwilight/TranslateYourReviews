@@ -21,13 +21,14 @@ export async function getTrialInfo(trialId: string): Promise<TrialInfo | null> {
 
 export async function registerTrial(): Promise<string> {
     const trialId = crypto.randomBytes(16).toString("hex");
-    await client.set<number>(`ext:${trialId}:count`, 0);
-    await client.set<number>(`ext:${trialId}:firstSeen`, Date.now());
+    await client.set(`ext:${trialId}:count`, 0);
+    await client.set(`ext:${trialId}:firstSeen`, Date.now());
+    console.log(`created trial with ID ${trialId}`);
     return trialId;
 }
 
-export async function incrementTrialTranslations(trialId: string) {
-    return await client.incr(`ext:${trialId}:count`);
+export async function billTrial(trialId: string, tokens: number) {
+    return await client.incrby(`ext:${trialId}:count`, tokens);
 }
 
 export async function cacheReview(reviewText: string) {

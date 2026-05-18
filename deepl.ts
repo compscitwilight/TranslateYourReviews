@@ -1,14 +1,15 @@
 import { franc } from "franc";
 import striptags from "striptags";
 
-export async function translateReview(content: string, targetLang: string = "EN") {
+export async function translateReview(content: string, targetLang: string = "EN"): Promise<[Response, number]> {
     const rawContent = striptags(content);
     const detectedLanguage = franc(rawContent);
-    if (rawContent.length > 1000)
+    const tokens = rawContent.length;
+    if (tokens > 1000)
         throw new Error("The raw content of the review text provided exceeds the trial character limit");
 
     if (detectedLanguage.slice(0, 2) === targetLang.toLowerCase())
-        return content;
+        throw new Error("The target language provided matches the detected language of the review");
 
     const response = await fetch("https://api-free.deepl.com/v2/translate", {
         method: "POST",
@@ -23,5 +24,5 @@ export async function translateReview(content: string, targetLang: string = "EN"
         })
     });
 
-    return response;
+    return [response, tokens];
 }
