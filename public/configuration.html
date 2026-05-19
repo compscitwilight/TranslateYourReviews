@@ -2,14 +2,18 @@
     <fieldset>
         <h4>Configure TranslateYourReviews</h4>
         <p>
-            Before using TranslateYourReviews, it is necessary that you provide your own DeepL
+            Before using TranslateYourReviews, it is recommended that you provide your own DeepL
             API key. You can get one for free by signing up
             <a href="https://www.deepl.com/en/pro#api" target="_blank">here</a>
         </p>
+        <div id="trial-indicator" class="notice">
+            <b>You have not yet configured your own key and are using a limited trial version of TranslateYourReviews.</b>
+            <p id="trial-usage"></p>
+        </div>
 
         <br />
 
-        <div class="clear">
+        <div id="api-usage-container" class="clear">
             <label id="api-usage-label" style="width: 100%;">API usage</label>
             <progress id="progressBar" value="0" max="100" style="width: 100%;" />
         </div>
