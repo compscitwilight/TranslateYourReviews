@@ -21,6 +21,11 @@ export interface DeepLUsage extends ErrorProneResponse {
     character_limit: number;
 }
 
+export interface TrialUsage extends ErrorProneResponse {
+    count: number;
+    maxCount: number;
+}
+
 export interface CachedTranslation {
     t: string;
     lang: string;
@@ -53,8 +58,8 @@ interface Request {
 
 browser.runtime.onMessage.addListener(async (message: Request) => {
     try {
+        const { trial } = await browser.storage.local.get("trial");
         if (message.action === "translate") {
-            const { trial } = await browser.storage.local.get("trial");
             const res = await fetch("https://translateyourreviews-proxy.fly.dev/translate", {
                 method: "POST",
                 headers: {
@@ -73,7 +78,7 @@ browser.runtime.onMessage.addListener(async (message: Request) => {
         } else if (message.action === "getUsage") {
             const res = await fetch("https://translateyourreviews-proxy.fly.dev/usage", {
                 method: "GET",
-                headers: { "Authorization": message.apiKey }
+                headers: { ...(message.apiKey ? { "Authorization": message.apiKey } : { "X-TranslateYourReviews": trial }) }
             });
 
             if (!res.ok) return { error: `${(await res.json()).message}, status code ${res.status}` };
