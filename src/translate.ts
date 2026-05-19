@@ -3,7 +3,7 @@ import striptags from "striptags";
 import type { DeepLTranslation, CachedTranslation } from "./background";
 
 const apiKey = localStorage.getItem("_tyr_deepl_key");
-const targetLang = localStorage.getItem("_tyr_lang");
+const targetLang = localStorage.getItem("_tyr_lang") || navigator.language.slice(3).toLowerCase();
 const languageNames = new Intl.DisplayNames(["en"], { type: "language" });
 
 async function cacheTranslation(reviewId: string, translation: DeepLTranslation) {
@@ -34,7 +34,6 @@ async function translateReview(reviewBodyHTML: string) {
         targetLang,
         apiKey
     });
-    console.log(res);
 
     if (res.error) throw new Error(res.error);
 
@@ -146,7 +145,7 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
                 displayReviewTranslation(translation);
                 cacheTranslation(reviewId, translation);
             })
-            .catch((err: string) => alert(`Failed to translate review! ${err}`))
+            .catch((err) => alert(`Failed to translate review!:\n\n${(err as Error).message}`))
             .finally(() => {
                 waiting = false;
                 translateButton.style.cursor = "auto";
@@ -159,15 +158,11 @@ function injectShortcutTranslateButton(review: HTMLDivElement) {
     // todo: add functionality
 }
 
-if (apiKey && targetLang) {
-    const reviewElements = document.querySelectorAll<HTMLDivElement>(".review, .page_feature_review");
-    if (reviewElements.length > 0) {
-        reviewElements.forEach((review, index: number) => {
-            if (review.classList.contains("review") && index === 0) return;
-            const injectionMethod = review.classList.contains("review") ? injectStandardTranslateButton : injectShortcutTranslateButton;
-            injectionMethod(review);
-        })
-    }
-} else {
-    console.warn("TranslateYourReviews has not been configured properly. Please visit https://rateyourmusic.com/account/preferences");
+const reviewElements = document.querySelectorAll<HTMLDivElement>(".review, .page_feature_review");
+if (reviewElements.length > 0) {
+    reviewElements.forEach((review, index: number) => {
+        if (review.classList.contains("review") && index === 0) return;
+        const injectionMethod = review.classList.contains("review") ? injectStandardTranslateButton : injectShortcutTranslateButton;
+        injectionMethod(review);
+    })
 }
