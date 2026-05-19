@@ -26,17 +26,23 @@ server.post("/register", async (_, response: express.Response) => {
 
 server.post("/translate", async (request: express.Request, response: express.Response) => {
     const { body } = request;
-    const trialId = request.get("x-translateyourreviews") as string;
-    if (!trialId) {
-        return response.status(400).send({
-            error: "Bad request. A 'X-TranslateYourReviews' header is required"
-        });
-    }
-
+    const trialId = request.get("x-translateyourreviews");
     if (request.get("content-type") !== "application/json") {
         return response.status(400).send({
             error: "Invalid content type provided"
         });
+    }
+
+    if (!trialId) {
+        const authorization = request.get("authorization");
+        if (!authorization) {
+            return response.status(403).send({
+                error: "Translation request must have either a X-TranslateYourReviews or an Authorization header"
+            });
+        }
+
+        const [translationResponse] = await translateReview(body.text, body.targetLang, authorization);
+        return response.status(200).send(translationResponse);
     }
 
     const trialInfo = await getTrialInfo(trialId);
@@ -67,6 +73,23 @@ server.post("/translate", async (request: express.Request, response: express.Res
             error: (error as Error).message
         });
     }
+})
+
+server.get("/usage", async (request: express.Request, response: express.Response) => {
+    const authorization = request.get("authorization");
+    if (!authorization) {
+        return response.status(403).send({
+            error: "An Authorization header is required to access your API usage"
+        });   
+    }
+
+    const usageResponse = await fetch("https://api-free.deepl.com/v2/usage", {
+        method: "GET",
+        headers: { "Authorization": `DeepL-Auth-Key ${authorization}` }
+    });
+
+    const body = await usageResponse.json();
+    return response.status(usageResponse.status).send(body);
 })
 
 server.listen(3000, () => {
