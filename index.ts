@@ -19,7 +19,7 @@ server.post("/register", async (_, response: express.Response) => {
 })
 
 server.post("/translate", async (request: express.Request, response: express.Response) => {
-    const { headers, body } = request;
+    const { body } = request;
     const trialId = request.get("x-translateyourreviews") as string;
     if (!trialId) {
         return response.status(400).send({
