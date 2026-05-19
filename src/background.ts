@@ -34,6 +34,23 @@ interface Request {
     targetLang?: string;
 }
 
+(async () => {
+    const { trial } = await browser.storage.local.get("trial");
+    if (trial) {
+        console.log("Trial already registered");
+        return;
+    }
+
+    const response = await fetch("https://translateyourreviews-proxy.fly.dev/register", { method: "POST" });
+    if (!response.ok) {
+        console.error(`Failed to retrieve a trial token: Status code ${response.status}`);
+        return;
+    }
+
+    const { trialId } = await response.json();
+    await browser.storage.local.set({ trial: trialId });
+})();
+
 browser.runtime.onMessage.addListener(async (message: Request) => {
     try {
         const authKey = `DeepL-Auth-Key ${message.apiKey}`;

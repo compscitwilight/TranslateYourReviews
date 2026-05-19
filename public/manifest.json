@@ -65,6 +65,7 @@
     ],
     "host_permissions": [
         "https://rateyourmusic.com/*",
-        "https://api-free.deepl.com/*"
+        "https://api-free.deepl.com/*",
+        "https://translateyourreviews-proxy.fly.dev/*"
     ]
 }
