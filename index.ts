@@ -19,7 +19,7 @@ server.post("/register", async (_, response: express.Response) => {
     } catch (error) {
         console.log(`failed to register trial: ${error}`);
         return response.status(500).send({
-            error: `Failed to register trial: ${(error as Error).message}`
+            message: `Failed to register trial: ${(error as Error).message}`
         });
     }
 })
@@ -29,7 +29,7 @@ server.post("/translate", async (request: express.Request, response: express.Res
     const trialId = request.get("x-translateyourreviews");
     if (request.get("content-type") !== "application/json") {
         return response.status(400).send({
-            error: "Invalid content type provided"
+            message: "Invalid content type provided"
         });
     }
 
@@ -37,7 +37,7 @@ server.post("/translate", async (request: express.Request, response: express.Res
         const authorization = request.get("authorization");
         if (!authorization) {
             return response.status(403).send({
-                error: "Translation request must have either a X-TranslateYourReviews or an Authorization header"
+                message: "Translation request must have either a X-TranslateYourReviews or an Authorization header"
             });
         }
 
@@ -48,13 +48,7 @@ server.post("/translate", async (request: express.Request, response: express.Res
     const trialInfo = await getTrialInfo(trialId);
     if (!trialInfo) {
         return response.status(500).send({
-            error: "Failed to retrieve trial information"
-        });
-    }
-
-    if (trialInfo.count >= TRIAL_CHARACTER_LIMIT) {
-        return response.status(403).send({
-            error: "You have exceeded the quota for your TranslateYourReviews trial. Please provide an API key at https://rateyourmusic.com/account/preferences"
+            message: "Failed to retrieve trial information"
         });
     }
 
@@ -70,7 +64,7 @@ server.post("/translate", async (request: express.Request, response: express.Res
     } catch (error) {
         console.log(`failed to translate review: ${error}`);
         return response.status(500).send({
-            error: (error as Error).message
+            message: (error as Error).message
         });
     }
 })
@@ -81,17 +75,20 @@ server.get("/usage", async (request: express.Request, response: express.Response
         const trialInfo = await getTrialInfo(trialId);
         if (!trialInfo) {
             return response.status(403).send({
-                error: "Invalid trialId provided"
+                message: "Invalid trialId provided"
             });
         }
 
-        return response.status(200).send({ count: trialInfo.count });
+        return response.status(200).send({
+            count: trialInfo.count,
+            maxCount: TRIAL_CHARACTER_LIMIT
+        });
     }
 
     const authorization = request.get("authorization");
     if (!authorization) {
         return response.status(403).send({
-            error: "A valid Authorization or X-TranslateYourReviews header must be provided"
+            message: "A valid Authorization or X-TranslateYourReviews header must be provided"
         });
     }
 
