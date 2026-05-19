@@ -42,7 +42,7 @@ server.post("/translate", async (request: express.Request, response: express.Res
         }
 
         const [translationResponse] = await translateReview(body.text, body.targetLang, authorization);
-        return response.status(200).send(translationResponse);
+        return response.status(200).send(await translationResponse.json());
     }
 
     const trialInfo = await getTrialInfo(trialId);
