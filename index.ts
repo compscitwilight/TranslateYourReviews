@@ -41,7 +41,7 @@ server.post("/translate", async (request: express.Request, response: express.Res
             });
         }
 
-        const [translationResponse] = await translateReview(body.text, body.targetLang, authorization);
+        const [translationResponse] = await translateReview(body.text, body.targetLang, authorization, false);
         return response.status(translationResponse.status).send(await translationResponse.json());
     }
 
@@ -54,8 +54,8 @@ server.post("/translate", async (request: express.Request, response: express.Res
 
     try {
         const text = body.text || "";
-        const targetLnaguage = body.targetLang || "";
-        const [translationResponse, usage] = await translateReview(text, targetLnaguage);
+        const targetLanguage = body.targetLang || "";
+        const [translationResponse, usage] = await translateReview(text, targetLanguage, process.env.DEEPL_KEY as string, true);
         if (!translationResponse.ok) throw new Error((await translationResponse.json()).message);
 
         await billTrial(trialId, usage);
