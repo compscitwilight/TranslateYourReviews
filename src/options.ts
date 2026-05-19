@@ -82,6 +82,7 @@ injectConfigurationHTML().then(() => {
                 localStorage.setItem("_tyr_lang", detectedLanguage);
                 localStorage.setItem("_tyr_deepl_key", apiKeyVal);
                 alert("Your API key was updated successfully.");
+                window.location.reload();
             }).catch((err: string) => {
                 alert(`Failed to validate DeepL API key:\n\n${err}`);
             })
