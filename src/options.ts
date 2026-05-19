@@ -1,4 +1,4 @@
-import { DeepLTranslation, DeepLUsage } from "./background";
+import { DeepLTranslation, DeepLUsage, TrialUsage } from "./background";
 
 async function injectConfigurationHTML() {
     const url = browser.runtime.getURL("configuration.html");
@@ -21,23 +21,39 @@ injectConfigurationHTML().then(() => {
 
     const currentAPIKey = localStorage.getItem("_tyr_deepl_key") || "";
     // api usage //
-    if (currentAPIKey.length > 0) {
-        const apiUsageLabel = document.querySelector<HTMLLabelElement>("#api-usage-label");
-        const apiUsageProgress = document.querySelector<HTMLProgressElement>("#progressBar");
-        browser.runtime.sendMessage({
-            action: "getUsage",
-            apiKey: localStorage.getItem("_tyr_deepl_key")
-        }).then((res: DeepLUsage) => {
-            if (res.error) throw new Error(res.error);
-            if (!apiUsageProgress || !apiUsageLabel) return;
+    const apiUsageContainer = document.querySelector<HTMLDivElement>("#api-usage-container");
+    const trialIndicator = document.querySelector<HTMLDivElement>("#trial-indicator");
+    if (apiUsageContainer)
+        apiUsageContainer.style.display = currentAPIKey.length > 0 ? "block" : "none";
 
-            const characterCount = res.character_count;
-            const characterLimit = res.character_limit;
+    if (trialIndicator)
+        trialIndicator.style.display = currentAPIKey.length > 0 ? "none" : "block";
+
+    browser.runtime.sendMessage({
+        action: "getUsage",
+        apiKey: localStorage.getItem("_tyr_deepl_key")
+    }).then((res: any) => {
+        if (res.error) throw new Error(res.error);
+        if (currentAPIKey.length > 0) {
+            // byok
+            const usage = res as DeepLUsage;
+            const apiUsageLabel = document.querySelector<HTMLLabelElement>("#api-usage-label");
+            const apiUsageProgress = document.querySelector<HTMLProgressElement>("#progressBar");
+            if (!apiUsageProgress || !apiUsageLabel) return;
+            const characterCount = usage.character_count;
+            const characterLimit = usage.character_limit;
             const usagePercent = (characterCount / characterLimit) * 100;
             apiUsageProgress.value = usagePercent;
             apiUsageLabel.innerText = `API usage: (${characterCount} / ${characterLimit}) ${usagePercent.toFixed(2)}%`;
-        }).catch((error: string) => alert(`Failed to retrieve API usage:\n\n${error}`));
-    }
+        } else {
+            // trial
+            const usage = res as TrialUsage;
+            const trialUsage = document.querySelector<HTMLParagraphElement>("#trial-usage");
+            if (!trialUsage) return;
+            trialUsage.innerText = `${usage.count}/${usage.maxCount} trial characters used`;
+            if ((usage.count / usage.maxCount) > 0.75) trialUsage.style.color = "red";
+        }
+    }).catch((error: string) => alert(`Failed to retrieve API usage:\n\n${error}`));
 
     apiKeyInput.defaultValue = localStorage.getItem("_tyr_deepl_key") || "";
 
