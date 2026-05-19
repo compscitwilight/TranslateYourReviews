@@ -1,7 +1,7 @@
 import { franc } from "franc";
 import striptags from "striptags";
 
-export async function translateReview(content: string, targetLang: string = "EN"): Promise<[Response, number]> {
+export async function translateReview(content: string, targetLang: string = "EN", key: string = process.env.DEEPL_KEY as string): Promise<[Response, number]> {
     const rawContent = striptags(content);
     const detectedLanguage = franc(rawContent);
     const tokens = rawContent.length;
@@ -15,7 +15,7 @@ export async function translateReview(content: string, targetLang: string = "EN"
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `DeepL-Auth-Key ${process.env.DEEPL_KEY}`
+            "Authorization": `DeepL-Auth-Key ${key}`
         },
         body: JSON.stringify({
             text: [content],
