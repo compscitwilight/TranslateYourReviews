@@ -15,7 +15,7 @@
 * Release page UI integration
 * DeepL API integration
 * Translation caching
-* Privacy-first (communicates with DeepL directly from your browser)
+* Privacy-first (no credentials are kept)
 * Site language detection
 
 
