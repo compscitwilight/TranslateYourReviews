@@ -1,9 +1,15 @@
 import express, { json } from "express";
+import cors from "cors";
 import "dotenv/config";
+
 import { billTrial, getTrialInfo, registerTrial } from "./redis.js";
 import { translateReview } from "./deepl.js";
 
 const server = express();
+server.use(cors({
+    origin: true,
+    credentials: false
+}));
 server.use(json());
 
 server.post("/register", async (_, response: express.Response) => {
