@@ -29,7 +29,7 @@ export interface CachedTranslation {
 
 interface Request {
     action: "translate" | "getUsage";
-    apiKey: string;
+    apiKey?: string;
     text?: string;
     targetLang?: string;
 }
@@ -53,19 +53,17 @@ interface Request {
 
 browser.runtime.onMessage.addListener(async (message: Request) => {
     try {
-        const authKey = `DeepL-Auth-Key ${message.apiKey}`;
         if (message.action === "translate") {
-            const res = await fetch("https://api-free.deepl.com/v2/translate", {
+            const { trial } = await browser.storage.local.get("trial");
+            const res = await fetch("https://translateyourreviews-proxy.fly.dev/translate", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": authKey
+                    ...(message.apiKey ? { "Authorization": message.apiKey } : { "X-TranslateYourReviews": trial })
                 },
                 body: JSON.stringify({
-                    text: [message.text],
-                    target_lang: message.targetLang || "EN",
-                    tag_handling: "xml",
-                    // ignore_tags: ["br", "i", "b", "em", "strong"]
+                    text: message.text,
+                    targetLang: message.targetLang || "EN"
                 })
             })
 
@@ -73,9 +71,9 @@ browser.runtime.onMessage.addListener(async (message: Request) => {
 
             return await res.json();
         } else if (message.action === "getUsage") {
-            const res = await fetch("https://api-free.deepl.com/v2/usage", {
+            const res = await fetch("https://translateyourreviews-proxy.fly.dev/usage", {
                 method: "GET",
-                headers: { "Authorization": authKey }
+                headers: { "Authorization": message.apiKey }
             });
 
             if (!res.ok) return { error: `${(await res.json()).message}, status code ${res.status}` };
