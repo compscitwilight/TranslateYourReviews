@@ -1,11 +1,14 @@
 import { franc } from "franc";
 import striptags from "striptags";
 
+export const TRIAL_CHARACTER_LIMIT: number = 1000;
+const REVIEW_CHARACTER_LIMIT: number = 1000;
+
 export async function translateReview(content: string, targetLang: string = "EN", key: string = process.env.DEEPL_KEY as string): Promise<[Response, number]> {
     const rawContent = striptags(content);
     const detectedLanguage = franc(rawContent);
     const tokens = rawContent.length;
-    if (tokens > 1000)
+    if (tokens > REVIEW_CHARACTER_LIMIT)
         throw new Error("The raw content of the review text provided exceeds the trial character limit");
 
     if (detectedLanguage.slice(0, 2) === targetLang.toLowerCase())

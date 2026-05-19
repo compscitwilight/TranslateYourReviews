@@ -3,7 +3,7 @@ import cors from "cors";
 import "dotenv/config";
 
 import { billTrial, getTrialInfo, registerTrial } from "./redis.js";
-import { translateReview } from "./deepl.js";
+import { TRIAL_CHARACTER_LIMIT, translateReview } from "./deepl.js";
 
 const server = express();
 server.use(cors({
@@ -52,7 +52,7 @@ server.post("/translate", async (request: express.Request, response: express.Res
         });
     }
 
-    if (trialInfo.count >= 1000) {
+    if (trialInfo.count >= TRIAL_CHARACTER_LIMIT) {
         return response.status(403).send({
             error: "You have exceeded the quota for your TranslateYourReviews trial. Please provide an API key at https://rateyourmusic.com/account/preferences"
         });
@@ -76,11 +76,23 @@ server.post("/translate", async (request: express.Request, response: express.Res
 })
 
 server.get("/usage", async (request: express.Request, response: express.Response) => {
+    const trialId = request.get("x-translateyourreviews");
+    if (trialId) {
+        const trialInfo = await getTrialInfo(trialId);
+        if (!trialInfo) {
+            return response.status(403).send({
+                error: "Invalid trialId provided"
+            });
+        }
+
+        return response.status(200).send({ count: trialInfo.count });
+    }
+
     const authorization = request.get("authorization");
     if (!authorization) {
         return response.status(403).send({
-            error: "An Authorization header is required to access your API usage"
-        });   
+            error: "A valid Authorization or X-TranslateYourReviews header must be provided"
+        });
     }
 
     const usageResponse = await fetch("https://api-free.deepl.com/v2/usage", {
