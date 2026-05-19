@@ -1,5 +1,6 @@
 {
   "name": "translateyourreviews",
+  "type": "module",
   "version": "1.0.0",
   "description": "Web extension that provides translation for reviews on RateYourMusic",
   "license": "MIT",
@@ -12,10 +13,12 @@
     "package:source": "rm -f source.zip && zip -r ./source.zip src/* package.json public/*"
   },
   "devDependencies": {
+    "@types/firefox-webext-browser": "^143.0.0",
     "esbuild": "^0.28.0"
   },
   "dependencies": {
     "franc": "^6.2.0",
-    "striptags": "^3.2.0"
+    "striptags": "^3.2.0",
+    "typescript": "^6.0.3"
   }
 }
