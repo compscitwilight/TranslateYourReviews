@@ -26,12 +26,6 @@ export interface TrialUsage extends ErrorProneResponse {
     maxCount: number;
 }
 
-export interface CachedTranslation {
-    t: string;
-    lang: string;
-    ts: number;
-}
-
 interface Request {
     action: "translate" | "getUsage";
     apiKey?: string;

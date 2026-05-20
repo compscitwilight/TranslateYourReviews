@@ -1,30 +1,26 @@
 import { franc } from "franc";
 import striptags from "striptags";
-import type { DeepLTranslation, CachedTranslation } from "./background";
+import type { DeepLTranslation } from "./background";
+
+const CACHED_TRANSLATIONS_KEY = "cached_translations";
 
 const apiKey = localStorage.getItem("_tyr_deepl_key");
 const targetLang = localStorage.getItem("_tyr_lang") || navigator.language.slice(3).toLowerCase();
 const languageNames = new Intl.DisplayNames(["en"], { type: "language" });
 
-async function cacheTranslation(reviewId: string, translation: DeepLTranslation) {
-    const entry = {
-        t: translation.text,
-        lang: translation.detected_source_language,
-        ts: Date.now()
-    } as CachedTranslation;
-
-    browser.storage.local.set({
-        [`${reviewId}_${targetLang}`]: entry
+async function markTranslationCached(reviewId: string) {
+    const result = await browser.storage.local.get(CACHED_TRANSLATIONS_KEY);
+    const array = result[CACHED_TRANSLATIONS_KEY] || [];
+    await browser.storage.local.set({
+        [CACHED_TRANSLATIONS_KEY]: Array.from(new Set([...array, reviewId]))
     });
-
-    console.log(`cached translation for ${reviewId}`);
+    console.log(`marked ${reviewId} as cached`);
 }
 
-async function getCachedTranslation(reviewId: string): Promise<CachedTranslation | null> {
-    const key = `${reviewId}_${targetLang}`;
-    const data = await browser.storage.local.get(key);
-    if (!data[key]) return null;
-    return data[key];
+async function isCached(reviewId: string): Promise<boolean> {
+    const result = await browser.storage.local.get(CACHED_TRANSLATIONS_KEY);
+    const array = result[CACHED_TRANSLATIONS_KEY] || [];
+    return array.includes(reviewId);
 }
 
 async function translateReview(reviewBodyHTML: string) {
@@ -80,6 +76,19 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
     const reviewContent = `<title>${escapeXML(reviewTitle?.innerHTML || "")}</title><body>${escapeXML(renderedText?.innerHTML || "")}</body>`;
     const language = franc(striptags(reviewContent));
     const reviewId = publishStatus?.querySelector("input")?.value as string;
+    if (language.slice(0, 2) === targetLang?.toLowerCase()) return;
+
+    const translateButton = document.createElement("span");
+    translateButton.style.float = "right";
+    translateButton.style.marginRight = "4px";
+    translateButton.id = "tyr_translate";
+    translateButton.title = "Translate this review";
+    translateButton.classList.add("review_vote_down"); // <-- mimics the hover style of rate buttons
+
+    const icon = document.createElement("i");
+    icon.classList.add("fa", "fa-globe");
+    translateButton.appendChild(icon);
+    reviewHeader?.appendChild(translateButton);
 
     function displayReviewTranslation(translation: DeepLTranslation) {
         if (!renderedText) {
@@ -111,31 +120,8 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
         translateButton.remove();
     }
 
-    const cachedTranslation = await getCachedTranslation(reviewId);
-    if (cachedTranslation) {
-        displayReviewTranslation({
-            text: cachedTranslation.t,
-            detected_source_language: cachedTranslation.lang
-        });
-    }
-
-    if (language.slice(0, 2) === targetLang?.toLowerCase()) return;
-
-    const translateButton = document.createElement("span");
-    translateButton.style.float = "right";
-    translateButton.style.marginRight = "4px";
-    translateButton.id = "tyr_translate";
-    translateButton.title = "Translate this review";
-    translateButton.classList.add("review_vote_down"); // <-- mimics the hover style of rate buttons
-
-    const icon = document.createElement("i");
-    icon.classList.add("fa", "fa-globe");
-    // icon.style.cssText = document.querySelector<HTMLLIElement>(".review_vote_up .fa-caret-up")?.style.cssText as string;
-    translateButton.appendChild(icon);
-    reviewHeader?.appendChild(translateButton);
-
     let waiting: boolean = false;
-    translateButton.addEventListener("click", () => {
+    function onTranslate() {
         if (waiting) return;
 
         waiting = true;
@@ -143,14 +129,18 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
         translateReview(reviewContent)
             .then((translation: DeepLTranslation) => {
                 displayReviewTranslation(translation);
-                cacheTranslation(reviewId, translation);
+                markTranslationCached(reviewId);
+                // cacheTranslation(reviewId, translation);
             })
             .catch((err) => alert(`Failed to translate review!:\n\n${(err as Error).message}`))
             .finally(() => {
                 waiting = false;
                 translateButton.style.cursor = "auto";
             })
-    })
+    }
+
+    if (await isCached(reviewId)) onTranslate();
+    translateButton.addEventListener("click", onTranslate);
 }
 
 // adds a translate button for reviews on the front page or displayed via the [Reviewxxxxx] shortcut

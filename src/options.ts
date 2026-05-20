@@ -1,4 +1,4 @@
-import { DeepLTranslation, DeepLUsage, TrialUsage } from "./background";
+import type { DeepLTranslation, DeepLUsage, TrialUsage } from "./background";
 
 async function injectConfigurationHTML() {
     const url = browser.runtime.getURL("configuration.html");
