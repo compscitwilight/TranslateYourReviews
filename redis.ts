@@ -39,6 +39,7 @@ export async function cacheReview(originalReview: string, translatedReview: stri
     const sourceLanguage = franc(originalReview).slice(0, 2);
     await client.set<string>(`review:${hash}`, translatedReview, { ex: CACHED_REVIEW_EXPIRY });
     await client.set<string>(`review:${hash}:source_lang`, sourceLanguage, { ex: CACHED_REVIEW_EXPIRY });
+    console.log(`cached review:${hash}`);
 }
 
 export async function getCachedReview(originalReview: string, targetLanguage: string) {
@@ -47,6 +48,7 @@ export async function getCachedReview(originalReview: string, targetLanguage: st
     const sourceLanguage = await client.get<string>(`review:${hash}:source_lang`);
     return (translatedReview !== null && sourceLanguage !== null) ? {
         // mimics DeepL API response
+        hash,
         text: translatedReview,
         detected_source_language: sourceLanguage
     } : null;

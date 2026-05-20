@@ -1,6 +1,6 @@
 import { franc } from "franc";
 import striptags from "striptags";
-import { getCachedReview, getTrialInfo } from "./redis.js";
+import { cacheReview, getCachedReview, getTrialInfo } from "./redis.js";
 
 export const TRIAL_CHARACTER_LIMIT: number = 5000;
 const REVIEW_CHARACTER_LIMIT: number = 1000;
@@ -12,9 +12,10 @@ export async function translateReview(content: string, targetLang: string = "EN"
         const res = new Response(JSON.stringify({
             translations: [cachedReview]
         }));
+        console.log(`returning cached review review:${cachedReview.hash}`);
         return [res, 0];
     }
-    
+
     const rawContent = striptags(content);
     const detectedLanguage = franc(rawContent);
     const tokens = rawContent.length;
@@ -45,5 +46,11 @@ export async function translateReview(content: string, targetLang: string = "EN"
         })
     });
 
-    return [response, tokens];
+    // caching
+    const body = await response.json();
+    if (response.ok) {
+        const translation = body["translations"][0];
+        await cacheReview(content, translation.text, targetLang);
+    }
+    return [new Response(JSON.stringify(body), { status: response.status }), response.ok ? tokens : 0];
 }
