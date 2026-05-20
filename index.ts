@@ -12,6 +12,8 @@ server.use(cors({
 }));
 server.use(json());
 
+server.get("/ping", (_, response: express.Response) => response.status(200).send("Pong"))
+
 server.post("/register", async (_, response: express.Response) => {
     try {
         const trialId = await registerTrial();
