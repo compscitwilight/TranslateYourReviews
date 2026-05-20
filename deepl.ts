@@ -1,11 +1,20 @@
 import { franc } from "franc";
 import striptags from "striptags";
-import { getTrialInfo } from "./redis.js";
+import { getCachedReview, getTrialInfo } from "./redis.js";
 
 export const TRIAL_CHARACTER_LIMIT: number = 5000;
 const REVIEW_CHARACTER_LIMIT: number = 1000;
 
 export async function translateReview(content: string, targetLang: string = "EN", key: string, isTrial?: boolean): Promise<[Response, number]> {
+    const cachedReview = await getCachedReview(content, targetLang);
+    if (cachedReview) {
+        // fake response
+        const res = new Response(JSON.stringify({
+            translations: [cachedReview]
+        }));
+        return [res, 0];
+    }
+    
     const rawContent = striptags(content);
     const detectedLanguage = franc(rawContent);
     const tokens = rawContent.length;
