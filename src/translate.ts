@@ -12,7 +12,7 @@ async function markTranslationCached(reviewId: string) {
     const result = await browser.storage.local.get(CACHED_TRANSLATIONS_KEY);
     const array = result[CACHED_TRANSLATIONS_KEY] || [];
     await browser.storage.local.set({
-        [CACHED_TRANSLATIONS_KEY]: Array.from(new Set([...array, reviewId]))
+        [CACHED_TRANSLATIONS_KEY]: Array.from(new Set([...array, reviewId])),
     });
     console.log(`marked ${reviewId} as cached`);
 }
@@ -28,7 +28,7 @@ async function translateReview(reviewBodyHTML: string) {
         action: "translate",
         text: reviewBodyHTML,
         targetLang,
-        apiKey
+        apiKey,
     });
 
     if (res.error) throw new Error(res.error);
@@ -40,14 +40,20 @@ async function translateReview(reviewBodyHTML: string) {
 function escapeXML(unsafeXml: string) {
     return unsafeXml.replace(/[<>&"']/g, (c) => {
         switch (c) {
-            case '<': return '&lt;';
-            case '>': return '&gt;';
-            case '&': return '&amp;';
-            case '"': return '&quot;';
-            case "'": return '&apos;';
-            default: return c;
+            case "<":
+                return "&lt;";
+            case ">":
+                return "&gt;";
+            case "&":
+                return "&amp;";
+            case '"':
+                return "&quot;";
+            case "'":
+                return "&apos;";
+            default:
+                return c;
         }
-    })
+    });
 }
 
 function unescapeXML(safeXml: string) {
@@ -55,7 +61,7 @@ function unescapeXML(safeXml: string) {
     return doc.documentElement.textContent || "";
 }
 
-// adds a translate button for reviews 
+// adds a translate button for reviews
 async function injectStandardTranslateButton(review: HTMLDivElement) {
     const reviewHeader = review.querySelector<HTMLDivElement>(".review_header");
     const reviewBody = review.querySelector<HTMLDivElement>(".review_body");
@@ -125,18 +131,19 @@ async function injectStandardTranslateButton(review: HTMLDivElement) {
         if (waiting) return;
 
         waiting = true;
-        translateButton.style.cursor = "not-authorized";
+        translateButton.style.cursor = "not-allowed";
+        translateButton.title = "Translating...";
         translateReview(reviewContent)
             .then((translation: DeepLTranslation) => {
                 displayReviewTranslation(translation);
                 markTranslationCached(reviewId);
-                // cacheTranslation(reviewId, translation);
             })
             .catch((err) => alert(`Failed to translate review!:\n\n${(err as Error).message}`))
             .finally(() => {
                 waiting = false;
-                translateButton.style.cursor = "auto";
-            })
+                translateButton.style.cursor = "pointer";
+                translateButton.title = "";
+            });
     }
 
     if (await isCached(reviewId)) onTranslate();
@@ -154,5 +161,5 @@ if (reviewElements.length > 0) {
         if (review.classList.contains("review") && index === 0) return;
         const injectionMethod = review.classList.contains("review") ? injectStandardTranslateButton : injectShortcutTranslateButton;
         injectionMethod(review);
-    })
+    });
 }
