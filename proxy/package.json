@@ -1,0 +1,27 @@
+{
+  "name": "translateyourreviews-proxy",
+  "version": "1.0.0",
+  "description": "Pre-configured DeepL proxy for TranslateYourReviews",
+  "license": "MIT",
+  "author": "compscitwilight",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./build"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.38.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "franc": "^6.2.0",
+    "redis": "^5.12.1",
+    "striptags": "^3.2.0"
+  }
+}
