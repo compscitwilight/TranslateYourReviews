@@ -27,24 +27,54 @@ export async function translateReview(
   const detectedLanguage = franc(rawContent);
   const tokens = rawContent.length;
   if (tokens > REVIEW_CHARACTER_LIMIT)
-    throw new Error(
-      "The raw content of the review text provided exceeds the trial character limit",
-    );
+    return [
+      new Response(
+        JSON.stringify({
+          message:
+            "The raw content of the review text provided exceeds teh trial character limit.",
+        }),
+        { status: 400 },
+      ),
+      0,
+    ];
 
   if (isTrial) {
     const info = await getTrialInfo(key);
-    if (!info) throw new Error("Failed to retrieve trial key information");
+    if (!info)
+      return [
+        new Response(
+          JSON.stringify({
+            message: "Failed to retrieve trial key information",
+          }),
+          { status: 500 },
+        ),
+        0,
+      ];
 
     if (tokens + info.count > TRIAL_CHARACTER_LIMIT)
-      throw new Error(
-        "You have exceeded the limit for your TranslateYourReviews trial. Please provide an API key at https://rateyourmusic.com/account/preferences",
-      );
+      return [
+        new Response(
+          JSON.stringify({
+            message:
+              "You have exceeded the limit for your TranslateYourReviews trial. Please provide an API key at https://rateyourmusic.com/account/preferences",
+          }),
+          { status: 429 },
+        ),
+        0,
+      ];
   }
 
   if (detectedLanguage.slice(0, 2) === targetLang.toLowerCase())
-    throw new Error(
-      "The target language provided matches the detected language of the review",
-    );
+    return [
+      new Response(
+        JSON.stringify({
+          message:
+            "The target language provided matches the detected language of the review.",
+        }),
+        { status: 400 },
+      ),
+      0,
+    ];
 
   const response = await fetch("https://api-free.deepl.com/v2/translate", {
     method: "POST",
